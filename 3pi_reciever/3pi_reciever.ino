@@ -1,43 +1,42 @@
 #include "LineSensors.h"
 
 #define BUZZER_PIN 6
-// Create an instance of the LineSensors_c class
-LineSensors_c line_sensors;
-float some_threshold = 500;
+
+// Create an instance of the CustomLineSensors class
+CustomLineSensors lineSensors;
+float calibrationThreshold = 0.8;
 
 void setup() {
   // Initialize the line sensors
-  line_sensors.initialiseForADC();
+  lineSensors.initializeSensors();
   pinMode(BUZZER_PIN, OUTPUT);
-
 
   // Initialize the Serial port for debugging
   Serial.begin(9600);
 }
 
 void loop() {
-  // Get latest readings from the line sensors
-  line_sensors.readSensorsADC();
+  // Get the latest calibrated readings from the line sensors
+  lineSensors.calculateCalibratedValues();
 
-  // Access and print the updated readings variable within the line_sensors class instance
-  for (int i = 0; i < NUM_SENSORS; i++) {
-    Serial.print(line_sensors.readings[i]);
-    if (i < NUM_SENSORS - 1) {
+  // Access and print the updated calibrated readings
+  for (int i = 0; i < NUM_LINE_SENSORS; i++) {
+    Serial.print(lineSensors.calibratedReadings[i]);
+    if (i < NUM_LINE_SENSORS - 1) {
       Serial.print(", ");
     }
   }
   Serial.println();
 
-  // Detect the IR signal by checking the line sensor readings
-  for (int i = 0; i < NUM_SENSORS; i++) {
-    if (line_sensors.readings[i] < some_threshold) {
+  // Detect the IR signal by checking the calibrated sensor readings
+  for (int i = 0; i < NUM_LINE_SENSORS; i++) {
+    if (lineSensors.calibratedReadings[i] < calibrationThreshold) {
       // Implement your logic here when IR signal is detected
       Serial.println("IR signal detected!");
-     // analogWrite( BUZZER_PIN, 50 );
+      // analogWrite(BUZZER_PIN, 50);
       // Add your follower bot movement logic here
-    }
-    else{
-      //analogWrite( BUZZER_PIN, 0 );
+    } else {
+      // analogWrite(BUZZER_PIN, 0);
     }
   }
 
