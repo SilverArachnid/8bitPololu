@@ -46,7 +46,7 @@ void setup() {
   // Create the full message with delimiters
   strcpy(fullMessage, delimiter);
   strcat(fullMessage, currentBinaryMessage);
-  strcat(fullMessage, delimiter);
+  //strcat(fullMessage, delimiter);
 }
 
 void loop() {
