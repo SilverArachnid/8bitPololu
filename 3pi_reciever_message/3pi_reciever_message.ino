@@ -65,9 +65,9 @@ void loop() {
   // Optional: IR signal detection with buzzer
   if (binaryOutput == 1) {
     Serial.println("IR signal detected!");
-    // analogWrite(BUZZER_PIN, 50);  // Buzzer alert if needed
+    //analogWrite(BUZZER_PIN, 50);  // Buzzer alert if needed
   } else {
-    // analogWrite(BUZZER_PIN, 0);
+    //analogWrite(BUZZER_PIN, 0);
   }
 
   delay(10); // Adjust the delay as needed

@@ -1,44 +1,56 @@
-#include <Pololu3piPlus32U4.h>
-
-bool emittion = HIGH;
-// Define the pin used to activate the IR LEDs
 #define EMIT_PIN 11
 #define BUZZ_PIN 6
-unsigned long timetaken;
+
+// Define a list of messages and their binary encodings
+struct Message {
+  String text;
+  String binary;
+};
+
+Message messages[] = {
+  {"hello", "010010010010"},
+  {"bye", "100101010"},
+  {"yes", "1010101"},
+  {"no", "1100011"},
+  {"ok", "0110001"}
+};
+
+int selectedMessageIndex = 0; // Index of the message to be transmitted
+
+const unsigned long bitDuration = 100; // Duration of each bit in milliseconds
 
 void setup() {
-  // Configure the EMIT pin as output and set it to high
   pinMode(EMIT_PIN, OUTPUT);
-  pinMode(BUZZ_PIN,OUTPUT);
-  digitalWrite(EMIT_PIN, HIGH);
-  timetaken=millis();
-  // Initialize the serial port
+  pinMode(BUZZ_PIN, OUTPUT);
   Serial.begin(9600);
+  
+  // Print available messages
+  Serial.println("Available messages:");
+  for (int i = 0; i < sizeof(messages)/sizeof(messages[0]); i++) {
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.println(messages[i].text);
+  }
+
+  // Select a message to transmit
+  Serial.println("Enter the index of the message to transmit:");
+  while (Serial.available() == 0) {} // Wait for input
+  selectedMessageIndex = Serial.parseInt();
+  Serial.print("Selected message: ");
+  Serial.println(messages[selectedMessageIndex].text);
 }
 
 void loop() {
-  // Continuously emit IR light
-  while(Serial.available()){
-    
+  // Construct the message with start and stop markers
+  String message = "1111" + messages[selectedMessageIndex].binary + "0000";
+
+  // Transmit the message
+  for (int i = 0; i < message.length(); i++) {
+    digitalWrite(EMIT_PIN, message[i] == '1' ? HIGH : LOW);
+    analogWrite(BUZZ_PIN, message[i] == '1' ? 120 : 0);
+    delay(bitDuration); // Duration for each bit
   }
 
-  String strval = Serial.readString();
-  for(int i=0;i<strval.length();){
-    digitalWrite(EMIT_PIN, emittion);
-    
-    if(millis()-timetaken>1000){
-      emittion = (strval.charAt(i)=='0')?0:1;
-      timetaken=millis();
-      if(emittion){
-        analogWrite(BUZZ_PIN,120);
-      }
-      else{
-        analogWrite(BUZZ_PIN,0);
-      }
-      i++;
-    }
-  }
-  digitalWrite(EMIT_PIN, 0);
-
-  Serial.println(emittion);
+  // Short delay before retransmitting the message
+  delay(1000); // Adjust as needed to control the frequency of message repetition
 }
