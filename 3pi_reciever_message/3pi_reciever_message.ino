@@ -1,4 +1,5 @@
 #include "LineSensors.h"
+#include <PololuOLED.h>     // Pololu OLED library
 
 #define BUZZER_PIN 6
 #define EMIT_PIN 11
@@ -16,6 +17,8 @@ Message messages[] = {
   {"no", "010001101100"},
   {"ok", "011000101000"}
 };
+
+PololuSH1106 display(1, 30, 0, 17, 13);
 
 const int numMessages = sizeof(messages) / sizeof(messages[0]);
 
@@ -69,6 +72,7 @@ void decodeMessage(const char* binaryMessage) {
     if (strcmp(binaryMessage, messages[i].binary) == 0) {
       Serial.print("Decoded Message: ");
       Serial.println(messages[i].text);
+      display.print(messages[i].text);
       analogWrite(BUZZER_PIN, 120);  // Buzzer alert
       delay(500);  // Buzzer on duration
       analogWrite(BUZZER_PIN, 0);  // Buzzer off
@@ -76,6 +80,19 @@ void decodeMessage(const char* binaryMessage) {
     }
   }
   Serial.println("Unknown message.");
+}
+
+void displayMessage(const char* status) {
+  display.clear();
+
+  // Set font size and move to specific line and character position
+  display.gotoXY(0, 0);
+  display.print("Rec:");
+
+  // Move to next line to display the incoming message
+  display.gotoXY(0, 1);
+  //display.print("X:");
+  display.print(status);
 }
 
 void loop() {
