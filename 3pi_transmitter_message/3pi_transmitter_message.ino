@@ -1,4 +1,4 @@
-#include <Pololu3piPlus32U4.h>
+//#include <Pololu3piPlus32U4.h>
 
 // Define the pin used to activate the IR LEDs and buzzer
 #define EMIT_PIN 11
@@ -23,7 +23,7 @@ Message messages[] = {
 };
 
 const int numMessages = sizeof(messages) / sizeof(messages[0]);
-int currentMessageIndex = 0; // Change this index to select a different message
+int currentMessageIndex = 3; // Change this index to select a different message
 const char* currentBinaryMessage;
 int binaryIndex = 0;
 
@@ -51,6 +51,7 @@ void setup() {
 
 void loop() {
   // Continuously emit IR light
+  
   if (millis() - timetaken > 100) {
     emittion = (fullMessage[binaryIndex] == '1');
     digitalWrite(EMIT_PIN, emittion);
