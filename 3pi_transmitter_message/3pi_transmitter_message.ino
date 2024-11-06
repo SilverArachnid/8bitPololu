@@ -16,10 +16,10 @@ struct Message {
 // Predefined dictionary of messages
 Message messages[] = {
   {"hello", "010010010010"},
-  {"bye", "100101010101"},
-  {"yes", "101010101010"},
-  {"no", "110001101100"},
-  {"ok", "011000101100"}
+  {"bye", "000101010100"},
+  {"yes", "001010101010"},
+  {"no", "010001101100"},
+  {"ok", "011000101000"}
 };
 
 const int numMessages = sizeof(messages) / sizeof(messages[0]);
