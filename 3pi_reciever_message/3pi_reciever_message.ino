@@ -72,7 +72,7 @@ void decodeMessage(const char* binaryMessage) {
     if (strcmp(binaryMessage, messages[i].binary) == 0) {
       Serial.print("Decoded Message: ");
       Serial.println(messages[i].text);
-      display.print(messages[i].text);
+      displayMessage(messages[i].text);
       analogWrite(BUZZER_PIN, 120);  // Buzzer alert
       delay(500);  // Buzzer on duration
       analogWrite(BUZZER_PIN, 0);  // Buzzer off
@@ -84,15 +84,13 @@ void decodeMessage(const char* binaryMessage) {
 
 void displayMessage(const char* status) {
   display.clear();
-
-  // Set font size and move to specific line and character position
-  display.gotoXY(0, 0);
-  display.print("Rec:");
-
-  // Move to next line to display the incoming message
-  display.gotoXY(0, 1);
-  //display.print("X:");
+  display.gotoXY(2, 0);
   display.print(status);
+  display.print("       ");
+  display.gotoXY(0, 1);
+  display.print("RECIEVED");
+  display.print("       ");
+  
 }
 
 void loop() {
