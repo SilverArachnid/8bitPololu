@@ -65,7 +65,7 @@ void loop() {
     if (fullMessage[binaryIndex] == '\0') {
       binaryIndex = 0; // Reset to the start of the full message
     }
-
     timetaken = millis();
   }
+  
 }

@@ -1,4 +1,5 @@
 #include "LineSensors.h"
+#include <string.h>
 
 #define BUZZER_PIN 6
 
@@ -6,6 +7,10 @@
 CustomLineSensors lineSensors;
 float midwayThreshold = 0.0;  // Midway threshold initialized to 0
 unsigned long calibrationStartTime;  // Track the calibration start time
+bool flagstart=false;
+long starttime;
+long transmissionrate=100;
+String str="";
 
 void calibrateSensors() {
   // Calibrate for 5 seconds to find min and max values
@@ -21,7 +26,7 @@ void calibrateSensors() {
     minTotal += lineSensors.minValues[i];
     maxTotal += lineSensors.maxValues[i];
   }
-  midwayThreshold =  0.90;                      //(minTotal + maxTotal) / (2 * NUM_LINE_SENSORS);  // Midpoint of calibrated min and max
+  midwayThreshold =  0.95;                      //(minTotal + maxTotal) / (2 * NUM_LINE_SENSORS);  // Midpoint of calibrated min and max
   Serial.print("Midway Threshold: ");
   Serial.println(midwayThreshold);  // Print the calculated threshold for verification
 }
@@ -52,23 +57,44 @@ void loop() {
   combinedValue /= NUM_LINE_SENSORS;  // Get average calibrated value
 
   // Print the combined value for troubleshooting
-  Serial.print("Combined Calibrated Value: ");
-  Serial.println(combinedValue);
+  //Serial.print("Combined Calibrated Value: ");
+  //Serial.println(combinedValue);
 
   // Generate a binary output based on the combined value compared to midway threshold
   int binaryOutput = combinedValue > midwayThreshold ? 1 : 0;
-
+  if(binaryOutput==1 && !flagstart){
+    flagstart=true;
+    starttime=millis();
+  }
+  //Serial.println(binaryOutput);
+  if(str.length()<60 && flagstart){
+    if((millis()-starttime)>50){
+      if(binaryOutput==1){
+        str=str+"1";
+        //analogWrite(BUZZER_PIN, 50);
+      }
+      else{
+        str=str+"0";
+        //analogWrite(BUZZER_PIN, 0);
+      }
+      starttime+=transmissionrate;
+    }
+  }
+  else{
+    //Serial.println(str);
+  }
+  
   // Print the final binary output for Serial Plotter
-  Serial.print("Binary Output: ");
-  Serial.println(binaryOutput);
+  //Serial.print("Binary Output: ");
+  Serial.println(combinedValue);
 
   // Optional: IR signal detection with buzzer
-  if (binaryOutput == 1) {
-    Serial.println("IR signal detected!");
+  //if (binaryOutput == 1) {
+    //Serial.println("IR signal detected!");
     //analogWrite(BUZZER_PIN, 50);  // Buzzer alert if needed
-  } else {
+  //} else {
     //analogWrite(BUZZER_PIN, 0);
-  }
-
-  delay(10); // Adjust the delay as needed
+  //}
+  
+  //delay(10); // Adjust the delay as needed
 }
