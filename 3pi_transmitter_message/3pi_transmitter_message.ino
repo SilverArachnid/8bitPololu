@@ -22,6 +22,28 @@ Message messages[] = {
   {"ok", "011000101000"}
 };
 
+//Message messages[] = {
+//  {"hello", "010010010010"},
+//  {"bye", "000101010100"},
+//  {"yes", "001010101010"},
+//  {"no", "010001101100"},
+//  {"ok", "011000101000"},
+//  {"thanks", "001110110110"},
+//  {"please", "010101101101"},
+//  {"help", "000110011011"},
+//  {"sorry", "011101010101"},
+//  {"stop", "001001001001"},
+//  {"start", "011010110100"},
+//  {"wait", "010100101110"},
+//  {"go", "000111000111"},
+//  {"come", "001011101011"},
+//  {"left", "010011010010"},
+//  {"right", "011100101001"},
+//  {"up", "001110101001"},
+//  {"down", "010001110100"},
+//  {"forward", "001100101100"},
+//  {"backward", "011011001001"}
+//};
 PololuSH1106 display(1, 30, 0, 17, 13);
 
 const int numMessages = sizeof(messages) / sizeof(messages[0]);
@@ -77,7 +99,7 @@ void loop() {
       messageRepeatCount++;  // Increment the counter
 
       // Check if the message has been sent 10 times
-      if (messageRepeatCount >= 10) {
+      if (messageRepeatCount >= 5) {
         messageRepeatCount = 0;  // Reset the counter
         selectRandomMessage();   // Select a new random message
       }
