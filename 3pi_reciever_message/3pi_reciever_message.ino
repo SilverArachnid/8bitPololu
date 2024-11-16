@@ -18,29 +18,6 @@ Message messages[] = {
   {"ok", "011000101000"}
 };
 
-//Message messages[] = {
-//  {"hello", "010010010010"},
-//  {"bye", "000101010100"},
-//  {"yes", "001010101010"},
-//  {"no", "010001101100"},
-//  {"ok", "011000101000"},
-//  {"thanks", "001110110110"},
-//  {"please", "010101101101"},
-//  {"help", "000110011011"},
-//  {"sorry", "011101010101"},
-//  {"stop", "001001001001"},
-//  {"start", "011010110100"},
-//  {"wait", "010100101110"},
-//  {"go", "000111000111"},
-//  {"come", "001011101011"},
-//  {"left", "010011010010"},
-//  {"right", "011100101001"},
-//  {"up", "001110101001"},
-//  {"down", "010001110100"},
-//  {"forward", "001100101100"},
-//  {"backward", "011011001001"}
-//};
-
 PololuSH1106 display(1, 30, 0, 17, 13);
 
 const int numMessages = sizeof(messages) / sizeof(messages[0]);
@@ -54,7 +31,7 @@ const char* delimiter = "1111";
 char receivedMessage[100] = "";
 int messageIndex = 0;
 unsigned long lastReadTime = 0;
-const unsigned long readInterval = 100; // Same interval as the transmitter
+const unsigned long readInterval = 25; // Same interval as the transmitter
 
 void calibrateSensors() {
   // Calibrate for 5 seconds to find min and max values
@@ -113,7 +90,6 @@ void displayMessage(const char* status) {
   display.gotoXY(0, 1);
   display.print("RECIEVED");
   display.print("       ");
-  
 }
 
 void loop() {
@@ -147,19 +123,38 @@ void loop() {
 
     // Check for the delimiter
     if (strstr(receivedMessage, delimiter)) {
-      // Extract the message between the delimiters
-      char* start = strstr(receivedMessage, delimiter) + strlen(delimiter);
-      char* end = strstr(start, delimiter);
+      // Find the first occurrence of the delimiter
+      char* delimiterPos = strstr(receivedMessage, delimiter);
+      
+      // Calculate the positions of potential start and end of the message
+      char* startBefore = delimiterPos - 12;
+      char* startAfter = delimiterPos + strlen(delimiter);
+      char* endAfter = startAfter + 12;
+      
+      // Debugging output
       Serial.print("receivedMessage:");
       Serial.println(receivedMessage);
       Serial.print("\n");
-      if (end) {
-        *end = '\0';
-        // Decode the message
-        decodeMessage(start);
+
+      // Check if the message exists before the delimiter
+      if (startBefore >= receivedMessage && delimiterPos >= receivedMessage + 12) {
+        // Null terminate the string before the delimiter
+        *(delimiterPos) = '\0';
+        // Decode the message before the delimiter
+        decodeMessage(startBefore);
         // Shift the remaining part of the message to the start
-        messageIndex = strlen(end + strlen(delimiter));
-        memmove(receivedMessage, end + strlen(delimiter), messageIndex + 1);
+        messageIndex = strlen(delimiterPos + strlen(delimiter));
+        memmove(receivedMessage, delimiterPos + strlen(delimiter), messageIndex + 1);
+      }
+      // Check if the message exists after the delimiter
+      else if (strlen(startAfter) >= 12) {
+        // Null terminate the string after the message
+        *(endAfter) = '\0';
+        // Decode the message after the delimiter
+        decodeMessage(startAfter);
+        // Shift the remaining part of the message to the start
+        messageIndex = strlen(endAfter + strlen(delimiter));
+        memmove(receivedMessage, endAfter + strlen(delimiter), messageIndex + 1);
       }
     }
 

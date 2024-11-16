@@ -83,7 +83,7 @@ void setup() {
 
 void loop() {
   // Continuously emit IR light
-  if (millis() - timetaken > 100) {
+  if (millis() - timetaken > 25) {
     emittion = (fullMessage[binaryIndex] == '1');
     digitalWrite(EMIT_PIN, emittion);
     if (emittion) {
