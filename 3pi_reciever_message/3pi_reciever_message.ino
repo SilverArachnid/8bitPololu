@@ -1,3 +1,5 @@
+//Team 8BitBot - University of Bristol
+
 #include "LineSensors.h"
 #include <PololuOLED.h>     // Pololu OLED library
 
@@ -22,21 +24,23 @@ PololuSH1106 display(1, 30, 0, 17, 13);
 
 const int numMessages = sizeof(messages) / sizeof(messages[0]);
 
-// Create an instance of the CustomLineSensors class
+
 CustomLineSensors lineSensors;
 float midwayThreshold = 0.0;  // Midway threshold initialized to 0
 unsigned long calibrationStartTime;  // Track the calibration start time
+float combinedValueMax = 0.0;
+float combinedValueMin = 10000.0;
 
 const char* delimiter = "1111";
 char receivedMessage[100] = "";
 int messageIndex = 0;
 unsigned long lastReadTime = 0;
-const unsigned long readInterval = 25; // Same interval as the transmitter
+const unsigned long readInterval = 100; // Same interval as the transmitter
 
 void calibrateSensors() {
   // Calibrate for 5 seconds to find min and max values
   calibrationStartTime = millis();
-  while (millis() - calibrationStartTime < 5000) {
+  while (millis() - calibrationStartTime < 2000) {
     lineSensors.readRawValues();
     delay(20); // Slight delay for each reading during calibration
   }
@@ -47,9 +51,37 @@ void calibrateSensors() {
     minTotal += lineSensors.minValues[i];
     maxTotal += lineSensors.maxValues[i];
   }
-  midwayThreshold = 0.90; //(minTotal + maxTotal) / (2 * NUM_LINE_SENSORS);  // Midpoint of calibrated min and max
+  //midwayThreshold = 0.90; //(minTotal + maxTotal) / (2 * NUM_LINE_SENSORS);  // Midpoint of calibrated min and max
+  //Serial.print("Midway Threshold: ");
+  //Serial.println(midwayThreshold);  // Print the calculated threshold for verification
+}
+
+void calibrateThreshold() {
+  // Calibrate for 5 seconds to find min and max values
+  calibrationStartTime = millis();
+  while (millis() - calibrationStartTime < 2000) {
+
+  // Get the latest calibrated readings from the line sensors
+  lineSensors.calculateCalibratedValues();
+
+  // Combine all calibrated values to produce a single averaged value
+  float combinedValue = 0.0;
+  for (int i = 0; i < NUM_LINE_SENSORS; i++) {
+      combinedValue += lineSensors.calibratedReadings[i];
+    }
+  combinedValue /= NUM_LINE_SENSORS;  // Get average calibrated value
+  if(combinedValueMax<combinedValue){
+    combinedValueMax=combinedValue;
+  }
+  if(combinedValueMin>combinedValue){
+    combinedValueMin=combinedValue;
+  }
+
+  // Generate a binary output based on the combined value compared to midway threshold
+  midwayThreshold = (combinedValueMax+combinedValueMin)/2; //(minTotal + maxTotal) / (2 * NUM_LINE_SENSORS);  // Midpoint of calibrated min and max
   Serial.print("Midway Threshold: ");
   Serial.println(midwayThreshold);  // Print the calculated threshold for verification
+}
 }
 
 void setup() {
@@ -65,6 +97,7 @@ void setup() {
   Serial.println("Calibrating...");
   calibrateSensors();
   Serial.println("Calibration complete!");
+  calibrateThreshold();
 }
 
 void decodeMessage(const char* binaryMessage) {
@@ -74,12 +107,17 @@ void decodeMessage(const char* binaryMessage) {
       Serial.println(messages[i].text);
       displayMessage(messages[i].text);
       analogWrite(BUZZER_PIN, 120);  // Buzzer alert
-      delay(500);  // Buzzer on duration
+      delay(5);  // Buzzer on duration
       analogWrite(BUZZER_PIN, 0);  // Buzzer off
       return;
     }
   }
   Serial.println("Unknown message.");
+  displayMessage("Unknown");
+  analogWrite(BUZZER_PIN, 120);  // Buzzer alert
+  delay(5);  // Buzzer on duration
+  analogWrite(BUZZER_PIN, 0);  // Buzzer off
+  
 }
 
 void displayMessage(const char* status) {
@@ -96,10 +134,10 @@ void loop() {
   if (millis() - lastReadTime >= readInterval) {
     lastReadTime = millis();
 
-    // Get the latest calibrated readings from the line sensors
+
     lineSensors.calculateCalibratedValues();
 
-    // Combine all calibrated values to produce a single averaged value
+    // Combine all calibrated values and then average
     float combinedValue = 0.0;
     for (int i = 0; i < NUM_LINE_SENSORS; i++) {
       combinedValue += lineSensors.calibratedReadings[i];
@@ -131,33 +169,32 @@ void loop() {
       char* startAfter = delimiterPos + strlen(delimiter);
       char* endAfter = startAfter + 12;
       
-      // Debugging output
+
       Serial.print("receivedMessage:");
       Serial.println(receivedMessage);
       Serial.print("\n");
 
-      // Check if the message exists before the delimiter
+        // checking if the message exists before the delimiter
       if (startBefore >= receivedMessage && delimiterPos >= receivedMessage + 12) {
         // Null terminate the string before the delimiter
         *(delimiterPos) = '\0';
-        // Decode the message before the delimiter
+        // decode the message before the delimiter
         decodeMessage(startBefore);
-        // Shift the remaining part of the message to the start
+        // shift the remaining part of the message to the start
         messageIndex = strlen(delimiterPos + strlen(delimiter));
         memmove(receivedMessage, delimiterPos + strlen(delimiter), messageIndex + 1);
       }
-      // Check if the message exists after the delimiter
+      // check if the message exists after the delimiter
       else if (strlen(startAfter) >= 12) {
-        // Null terminate the string after the message
-        *(endAfter) = '\0';
-        // Decode the message after the delimiter
+        *(endAfter) = '\0'; // null terminate the string after the message
+        // decode the message after the delimiter
         decodeMessage(startAfter);
-        // Shift the remaining part of the message to the start
+        // shift the remaining part of the message to the start
         messageIndex = strlen(endAfter + strlen(delimiter));
         memmove(receivedMessage, endAfter + strlen(delimiter), messageIndex + 1);
       }
     }
 
-    //delay(10); // Adjust the delay as needed
+    //delay(10); 
   }
 }

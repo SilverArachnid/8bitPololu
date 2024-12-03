@@ -9,10 +9,10 @@ struct Message {
 
 Message messages[] = {
   {"hello", "010010010010"},
-  {"bye", "100101010"},
-  {"yes", "1010101"},
-  {"no", "1100011"},
-  {"ok", "0110001"}
+  {"bye", "000101010100"},
+  {"yes", "001010101010"},
+  {"no", "010001101100"},
+  {"ok", "011000101000"}
 };
 
 int selectedMessageIndex = 0; // Index of the message to be transmitted
